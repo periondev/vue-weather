@@ -26,10 +26,10 @@
       </li>
       <li>
         <a
-          href="https://opendata.cwa.gov.tw/opendatadoc/MFC/A0012-001.pdf"
+          href="https://www.cwa.gov.tw/Data/data_catalog/1-1-1.pdf"
           target="_blank"
           class="text-weather-secondary"
-          >{{ $t('weatherDataTranslationLink') }}</a
+          >{{ $t('CWAProductSpecificationLink') }}</a
         >
       </li>
     </ul>

@@ -19,8 +19,8 @@ export default {
   sevenDayTempChart: '7 Day Temperature Chart',
   sevenDayTempChartTitle: '7 Day Temperature Chart',
   // Chart label
-  dayTemp: 'Day Temp',
-  nightTemp: 'Night Temp',
+  dayTemp: 'Day Max Temp',
+  nightTemp: 'Night Min Temp',
   apparentTemp: 'Apparent Temp',
   // Info Page
   howToUse: {
@@ -41,7 +41,8 @@ export default {
   referenceLink: 'Reference Link',
   CWALink: 'Central Weather Administration Website',
   openWeatherDataLink: 'Open Weather Data Website',
-  weatherDataTranslationLink: 'Weather Data Translation',
+  CWAProductSpecificationLink:
+    'Central Weather Administration Product Specification - 368 Townships Forecasts',
   // 22 縣市
   臺北市: 'Taipei City',
   基隆市: 'Keelung City',

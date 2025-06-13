@@ -19,8 +19,8 @@ export default {
   sevenDayTempChart: '一週溫度曲線',
   sevenDayTempChartTitle: '一週溫度曲線',
   // Chart label
-  dayTemp: '白天溫度',
-  nightTemp: '晚上溫度',
+  dayTemp: '白天高溫',
+  nightTemp: '晚上低溫',
   apparentTemp: '體感溫度',
   // Info page
   howToUse: {
@@ -41,5 +41,5 @@ export default {
   referenceLink: '資訊參考連結',
   CWALink: '交通部中央氣象署',
   openWeatherDataLink: '氣象資料開放平台',
-  weatherDataTranslationLink: '預報因子中英文對照及天氣描述代碼對應文件',
+  CWAProductSpecificationLink: '中央氣象署產品說明文件 - 368鄉鎮預報',
 };
