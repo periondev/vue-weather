@@ -18,7 +18,7 @@ export interface CurrentElements {
 
 // 即時天氣資料折線圖
 export interface CurrentChartData {
-  date: string[][];
+  date: string[];
   temp: number[]; // 溫度
   apparentTemp: number[]; // 體感溫度
 }

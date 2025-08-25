@@ -13,8 +13,9 @@ import { toRefs, computed } from 'vue';
 import { useCurrentWeather } from '@/store/currentWeather';
 import { calculateStepSize } from '@/utils/calculate';
 import { Line } from 'vue-chartjs';
+import { format } from 'date-fns';
 import i18n from '@/utils/vue-i18n';
-const { t } = i18n.global;
+const { t, d } = i18n.global;
 const currentStore = useCurrentWeather();
 const { currentChartData } = toRefs(currentStore);
 
@@ -29,9 +30,43 @@ const chartYAxisData = computed(() => [
   ...currentChartData.value.apparentTemp,
 ]);
 
+/**
+ * 格式化圖表的 X 軸標籤。
+ *
+ * 此函式負責將從 Pinia store 獲取的原始日期時間字串陣列 (ISO 8601 格式)
+ * 轉換為符合顯示需求的標籤格式。
+ *
+ * 格式化邏輯如下：
+ * 1. 對於第一筆資料以及每個午夜 (00:00) 的資料點，標籤會以多行陣列呈現：
+ *    [小時, 月/日, 本地化的星期幾] (例如: ['00', '08/25', '週一'])。
+ *    這樣可以在新的一天開始時提供完整的日期上下文。
+ * 2. 對於其餘的資料點，僅顯示兩位數的小時 (例如: '15', '16')，以保持圖表簡潔。
+ * 3. 使用 date-fns 的 format() 函式來格式化日期和時間。
+ * 4. 使用 vue-i18n 的 d() 函式來確保星期幾的顯示會隨著語言切換而更新。
+ */
+const formattedLabels = computed(() => {
+  if (
+    !currentChartData.value.date ||
+    currentChartData.value.date.length === 0
+  ) {
+    return [];
+  }
+  return currentChartData.value.date.map(
+    (dateTimeString: string, index: number) => {
+      const date = new Date(dateTimeString);
+      const hour = format(date, 'HH');
+
+      if (index === 0 || date.getHours() === 0) {
+        return [hour, format(date, 'MM/dd'), d(date, 'dayOfWeek')];
+      }
+      return hour;
+    }
+  );
+});
+
 // Chart data of current weather forecast
 const chartData = computed(() => ({
-  labels: currentChartData.value.date,
+  labels: formattedLabels.value,
   datasets: [
     {
       label: t('temp'),
@@ -106,8 +141,8 @@ const chartOptions = computed(() => {
           color: '#d4d4d4',
           stepSize: stepSize, // 動態設定 stepSize
         },
-        suggestedMin: yAxisData.length ? Math.min(...yAxisData) : 5, // Y 軸最小值
-        suggestedMax: yAxisData.length ? Math.max(...yAxisData) : 20, // Y 軸最大值
+        suggestedMin: yAxisData.length ? Math.min(...yAxisData) - 1 : 5, // Y 軸預設最小值
+        suggestedMax: yAxisData.length ? Math.max(...yAxisData) + 1 : 20, // Y 軸預設最大值
       },
     },
   };

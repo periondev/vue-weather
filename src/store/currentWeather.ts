@@ -1,25 +1,6 @@
 import { defineStore } from 'pinia';
 import type { CurrentChartData, CurrentElements } from '@/types';
 import axios from 'axios';
-import { format } from 'date-fns';
-
-// 工具函數：簡化日期與時間
-const simplifyDateTime = (dateTime: string) => ({
-  time: dateTime.split('T')[1].slice(0, 2),
-  date: dateTime.split('T')[0].split('-').slice(1).join('/'),
-});
-
-// 工具函數：過濾日期陣列
-const filterForecastDates = (dateArr: string[][]) => {
-  return dateArr.reduce((result: string[][], date: string[], index: number) => {
-    if (index === 0 || date[0] === '00') {
-      result.push(date); // 保留完整陣列
-    } else {
-      result.push([date[0]]); // 僅保留時間部分
-    }
-    return result;
-  }, []);
-};
 
 export const useCurrentWeather = defineStore('currentWeather', {
   state: () => ({
@@ -38,7 +19,6 @@ export const useCurrentWeather = defineStore('currentWeather', {
               LocationName: region,
               ElementName:
                 '溫度,相對濕度,體感溫度,舒適度指數,風速,3小時降雨機率,天氣現象',
-              timeFrom: format(new Date(), "yyyy-MM-dd'T'HH:00:00"),
             },
           }
         );
@@ -66,15 +46,13 @@ export const useCurrentWeather = defineStore('currentWeather', {
 
           // 72小時預報折線圖數據 (前36小時區間，由原逐3小時預報調整為逐時預報)
           // 即時取得資料集:溫度、體感溫度各48筆
-          // 從溫度資料集提取簡化的日期時間
+          // 從溫度資料集提取對應資料時間
           const tempForecasts = weatherElements[0].Time.slice(0, 47);
           const apparentTempForecasts = weatherElements[2].Time.slice(0, 47);
-          const shortenedDateArr = tempForecasts.map((el: any) =>
-            Object.values(simplifyDateTime(el.DataTime))
-          );
+          const dataTime = tempForecasts.map((el: any) => el.DataTime);
 
           this.currentChartData = {
-            date: filterForecastDates(shortenedDateArr),
+            date: dataTime,
             temp: tempForecasts.map(
               (el: any) => el.ElementValue[0].Temperature
             ),
