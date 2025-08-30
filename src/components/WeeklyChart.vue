@@ -13,29 +13,34 @@ import { useWeeklyWeather } from '@/store/weeklyWeather';
 import { calculateStepSize } from '@/utils/calculate';
 import { Line } from 'vue-chartjs';
 import i18n from '@/utils/vue-i18n';
+import { format } from 'date-fns';
 const { t, d } = i18n.global;
 const weeklyStore = useWeeklyWeather();
 const { weeklyChartData } = toRefs(weeklyStore);
 
 // (在渲染組件前) 檢查weeklyChartData是否已定義並包含有效數據
 const chartDataReady = computed(() => {
-  return weeklyChartData.value.date && weeklyChartData.value.date.length > 0;
+  return weeklyChartData.value.dates && weeklyChartData.value.dates.length > 0;
 });
 
 // 快取所有Y軸數據
 const chartYAxisData = computed(() => [
-  ...weeklyChartData.value.tempDay,
-  ...weeklyChartData.value.tempNight,
+  ...(weeklyChartData.value.tempDay ?? []),
+  ...(weeklyChartData.value.tempNight ?? []),
 ]);
+
+const formattedLabels = computed(() => {
+  return (
+    weeklyChartData.value.dates?.map((date: Date) => [
+      format(date, 'MM/dd'),
+      d(date, 'dayOfWeek'),
+    ]) ?? []
+  );
+});
 
 // Chart data of weekly weather forecast
 const chartData = computed(() => ({
-  labels: [
-    ...weeklyChartData.value.date.map((el: any, i: number) => [
-      el,
-      d(weeklyChartData.value.dayOfWeek[i], 'dayOfWeek'),
-    ]),
-  ],
+  labels: formattedLabels.value,
   datasets: [
     {
       label: t('dayTemp'),

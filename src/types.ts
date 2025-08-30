@@ -35,8 +35,7 @@ export interface WeeklyElements {
 
 // 一週天氣預報折線圖
 export interface WeeklyChartData {
-  date: string[];
-  dayOfWeek: string[];
+  dates: Date[];
   tempDay: number[]; // 早平均溫度
   tempNight: number[]; // 晚平均溫度
 }

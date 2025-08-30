@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import type { WeeklyChartData, WeeklyElements } from '@/types';
+import { format } from 'date-fns';
 import axios from 'axios';
 
 export const useWeeklyWeather = defineStore('weeklyWeather', {
@@ -17,7 +18,8 @@ export const useWeeklyWeather = defineStore('weeklyWeather', {
             params: {
               Authorization: import.meta.env.VITE_API_CWA,
               LocationName: region,
-              ElementName: '平均溫度,平均相對濕度,12小時降雨機率,天氣現象',
+              ElementName:
+                '平均溫度,最高溫度,最低溫度,平均相對濕度,12小時降雨機率,天氣現象',
             },
           }
         );
@@ -33,49 +35,42 @@ export const useWeeklyWeather = defineStore('weeklyWeather', {
               (item: any) => item.ElementValue[0][key]
             );
           };
-          const tArr = extractData(data, 0, 'Temperature'); // 平均溫度
-          const rhArr = extractData(data, 1, 'RelativeHumidity'); // 平均相對濕度
-          const popArr = extractData(data, 2, 'ProbabilityOfPrecipitation'); // 12小時降雨機率
-          const wxArr = extractData(data, 3, 'Weather'); // 天氣現象
+          // 注意: 天氣元素的順序必須與API回傳的順序一致
+          const tempArr = extractData(data, 0, 'Temperature'); // 平均溫度
+          const maxTempArr = extractData(data, 1, 'MaxTemperature'); // 最高溫度
+          const minTempArr = extractData(data, 2, 'MinTemperature'); // 最低溫度
+          const rhArr = extractData(data, 3, 'RelativeHumidity'); // 平均相對濕度
+          const popArr = extractData(data, 4, 'ProbabilityOfPrecipitation'); // 12小時降雨機率
+          const wxArr = extractData(data, 5, 'Weather'); // 天氣現象
 
-          // 提取每天開始時間陣列:
-          const dateArr = data[0].Time.map((item: any) => item.StartTime);
+          // 從溫度資料集提取每天開始時間陣列:
+          const dateStrings = data[0].Time.map((el: any) => el.StartTime);
 
-          // 排除陣列第一筆資料:因查詢時間區段跨夜(After 18:00)造成第一筆為過時資料
-          [dateArr, popArr, tArr, rhArr, wxArr].forEach(
-            (arr) => arr.length > 14 && arr.shift()
-          );
-
-          // 通用函數，用於簡化時間為:月/日
-          const shortDate = dateArr.map((d: string) =>
-            d.split('T')[0].split('-').slice(1).join('/')
-          );
-          // 通用函數，用於格式化時間為 Unix 時間戳記
-          const formattedDate = dateArr.map((d: string) => {
-            return new Date(d);
-          });
+          // 將日期字串轉換為 Date 物件
+          const dateObjects = dateStrings.map((d: string) => new Date(d));
 
           // 一週預報天氣元素
           for (let i = 0; i < 7; i++) {
             this.elements[i] = {
-              dayOfWeek: formattedDate[i * 2],
-              date: shortDate[i * 2],
+              dayOfWeek: dateObjects[i * 2],
+              date: format(dateObjects[i * 2], 'MM/dd'),
               pop: [popArr[i * 2], popArr[i * 2 + 1]],
-              temp: [tArr[i * 2], tArr[i * 2 + 1]],
+              temp: [tempArr[i * 2], tempArr[i * 2 + 1]],
               rh: [rhArr[i * 2], rhArr[i * 2 + 1]],
               wx: [wxArr[i * 2], wxArr[i * 2 + 1]],
             };
           }
+
           // 一週預報折線圖資料
           this.weeklyChartData = {
-            date: shortDate.filter((_: any, i: number) => i % 2 === 0),
-            dayOfWeek: formattedDate.filter((_: any, i: number) => i % 2 === 0),
-            tempDay: tArr
+            // 傳遞 Date 物件陣列，將格式化邏輯移至組件層
+            dates: dateObjects.filter((_: any, i: number) => i % 2 === 0),
+            tempDay: maxTempArr
               .filter((_: any, i: number) => i % 2 === 0)
-              .map((str: string) => parseInt(str)),
-            tempNight: tArr
+              .map((str: string) => parseInt(str, 10)),
+            tempNight: minTempArr
               .filter((_: any, i: number) => i % 2 === 1)
-              .map((str: string) => parseInt(str)),
+              .map((str: string) => parseInt(str, 10)),
           };
         }
       } catch (error) {
