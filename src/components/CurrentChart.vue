@@ -26,8 +26,8 @@ const chartDataReady = computed(() => {
 
 // 快取所有Y軸數據
 const chartYAxisData = computed(() => [
-  ...currentChartData.value.temp,
-  ...currentChartData.value.apparentTemp,
+  ...(currentChartData.value.temp ?? []),
+  ...(currentChartData.value.apparentTemp ?? []),
 ]);
 
 /**
@@ -45,22 +45,18 @@ const chartYAxisData = computed(() => [
  * 4. 使用 vue-i18n 的 d() 函式來確保星期幾的顯示會隨著語言切換而更新。
  */
 const formattedLabels = computed(() => {
-  if (
-    !currentChartData.value.date ||
-    currentChartData.value.date.length === 0
-  ) {
-    return [];
-  }
-  return currentChartData.value.date.map(
-    (dateTimeString: string, index: number) => {
-      const date = new Date(dateTimeString);
-      const hour = format(date, 'HH');
+  return (
+    currentChartData.value.date?.map(
+      (dateTimeString: string, index: number) => {
+        const date = new Date(dateTimeString);
+        const hour = format(date, 'HH');
 
-      if (index === 0 || date.getHours() === 0) {
-        return [hour, format(date, 'MM/dd'), d(date, 'dayOfWeek')];
+        if (index === 0 || date.getHours() === 0) {
+          return [hour, format(date, 'MM/dd'), d(date, 'dayOfWeek')];
+        }
+        return hour;
       }
-      return hour;
-    }
+    ) ?? []
   );
 });
 
@@ -70,7 +66,7 @@ const chartData = computed(() => ({
   datasets: [
     {
       label: t('temp'),
-      data: currentChartData.value.temp,
+      data: currentChartData.value.temp ?? [],
       backgroundColor: '#a5f3fc',
       borderColor: '#a5f3fc',
       hoverRadius: 6,
@@ -87,7 +83,7 @@ const chartData = computed(() => ({
     },
     {
       label: t('apparentTemp'),
-      data: currentChartData.value.apparentTemp,
+      data: currentChartData.value.apparentTemp ?? [],
       backgroundColor: '#fb923c',
       borderColor: '#fb923c',
       hoverRadius: 6,
